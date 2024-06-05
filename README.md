@@ -23,5 +23,5 @@ https://docs.cyberark.com/privilege-cloud-standard/Latest/en/Content/WebServices
 `curl -LkX POST -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/auth/Cyberark/Logon/ -d '{"username": "MyUserName", "password": "MyPassword"}'`<br>
 Response should contain the token for subsequent requests: `{"<session token>"}`
 
-## GET ACCOUNTS:
+## Get Accounts:
 `curl -Lk -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/Accounts?offset=0&limit=1&search=bob`
