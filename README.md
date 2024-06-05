@@ -20,7 +20,7 @@ https://docs.cyberark.com/privilege-cloud-standard/Latest/en/Content/WebServices
 
 # related curl commands:
 ## Logon:
-`curl -LkX POST -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/auth/Cyberark/Logon/ -d '{"username": "MyUserName", "password": "MyPassword"}'`
+`curl -LkX POST -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/auth/Cyberark/Logon/ -d '{"username": "MyUserName", "password": "MyPassword"}'`<br>
 Response should contain the token for subsequent requests: `{"<session token>"}`
 
 ## GET ACCOUNTS:
