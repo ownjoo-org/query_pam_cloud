@@ -70,7 +70,7 @@ def main(
         session.headers.update(
             {
                 'Content-Type': 'application/json; Charset=UTF-8',
-                'concurrentSession': True,
+                # 'concurrentSession': True,
                 'Authorization': f'Bearer {token}',
             }
         )
