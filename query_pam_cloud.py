@@ -6,7 +6,7 @@ from requests import Session, Response, HTTPError
 
 PAGE_SIZE: int = 1000
 
-URL_BASE: str = 'https://{subdomain}.privilegecloud.cyberark.com/PasswordVault/API'
+URL_BASE: str = 'https://{subdomain}.privilegecloud.cyberark.cloud/PasswordVault/API'
 URL_LOGON: str = 'https://{tenant_id}.id.cyberark.cloud/oauth2/platformtoken'
 URL_ACCOUNTS: str = f'{URL_BASE}/Accounts'
 
