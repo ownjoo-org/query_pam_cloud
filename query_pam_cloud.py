@@ -7,17 +7,20 @@ from requests import Session, Response, HTTPError
 PAGE_SIZE: int = 1000
 
 URL_BASE: str = 'https://{{subdomain}}.privilegecloud.cyberark.com/PasswordVault/API'
-URL_LOGON: str = f'{URL_BASE}/auth/{{auth_method}}/Logon/'
+URL_LOGON: str = 'https://{tenant_id}.id.cyberark.cloud/oauth2/platformtoken'
 URL_ACCOUNTS: str = f'{URL_BASE}/Accounts'
 
 
-def logon(session: Session, domain: str, username: str, password: str, auth_method) -> str:
-    logon_url: str = URL_LOGON.format(subdomain=domain, auth_method=auth_method)
-    post_data: dict = {'username': username, 'password': password}
+def logon(session: Session, domain: str, tenant_id: str, username: str, password: str, auth_method) -> str:
+    logon_url: str = URL_LOGON.format(tenant_id=tenant_id)
+    post_data: dict = {
+        'grant_type': 'client_credentials',
+        'client_id': username,
+        'client_secret': password,
+    }
     resp_auth: Response = session.post(url=logon_url, data=post_data)
     resp_auth.raise_for_status()
-    # API doc says token will be in format {"the_token_value"}
-    token: str = resp_auth.text.replace('{', '').replace('}', '')
+    token: str = resp_auth.json().get('access_token')
     return token
 
 
@@ -41,6 +44,7 @@ def list_accounts(session: Session, search: Optional[str] = None) -> Generator[d
 
 def main(
         domain: str,
+        tenant_id: str,
         username: str,
         password: str,
         auth_method: str,
@@ -51,16 +55,28 @@ def main(
 
     headers: dict = {
         'Accept': 'application/json',
-        'Content-Type': 'application/json; Charset=UTF-8',
-        'concurrentSession': True,
+        'Content-Type': 'application/x-www-form-urlencoded',
     }
     session.headers = headers
     session.proxies = proxies
 
     token: None | str = None
     try:
-        token = logon(session=session, domain=domain, username=username, password=password, auth_method=auth_method)
-        session.headers.update({'Authorization': token})
+        token = logon(
+            session=session,
+            domain=domain,
+            tenant_id=tenant_id,
+            username=username,
+            password=password,
+            auth_method=auth_method,
+        )
+        session.headers.update(
+            {
+                'Content-Type': 'application/json; Charset=UTF-8',
+                'concurrentSession': True,
+                'Authorization': f'Bearer {token}',
+            }
+        )
     except HTTPError as http_err:
         print(f'HTTPError during logon: {http_err}')
         raise
@@ -85,6 +101,13 @@ if __name__ == '__main__':
         type=str,
         required=True,
         help="The subdomain name for your instance in privilege cloud (subdomain.privilegecloud.cyberark.com)",
+    )
+    parser.add_argument(
+        '--tenant_id',
+        type=str,
+        required=True,
+        help="""The tenant ID for your instance in privilege cloud.
+        Usually 6 characters to be pre-pended to the cyberark URL (abc123.id.cyberark.cloud)""",
     )
     parser.add_argument(
         '--username',
@@ -132,6 +155,7 @@ if __name__ == '__main__':
 
     for asset in main(
         domain=args.subdomain,
+        tenant_id=args.tenant_id,
         username=args.username,
         password=args.password,
         auth_method=args.auth_method,

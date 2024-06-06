@@ -13,15 +13,21 @@ usage: query_pam_cloud.py [-h] --subdomain SUBDOMAIN --username USERNAME --passw
 
 
 # example: look up accounts
-`python query_pam_cloud.py --subdomain MySubdomain --username MyUserName --password MyPassword --auth_method Cyberark`<br>
+```
+python query_pam_cloud.py --subdomain MySubdomain --username MyUserName --password MyPassword --auth_method Cyberark
+```
 
 # references: 
 https://docs.cyberark.com/privilege-cloud-standard/Latest/en/Content/WebServices/Implementing%20Privileged%20Account%20Security%20Web%20Services%20.htm?tocpath=Developers%7CREST-APIs%7CREST%20APIs%7C_____0<br>
 
 # related curl commands:
 ## Logon:
-`curl -LkX POST -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/auth/Cyberark/Logon/ -d '{"username": "MyUserName", "password": "MyPassword"}'`<br>
-Response should contain the token for subsequent requests: `{"<session token>"}`
+```
+curl -LvkX POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'grant_type=client_credentials' -d 'client_id=MyUserName' -d 'client_secret=MyPassword' https://MyTenantId.id.cyberark.cloud/oauth2/platformtoken
+```
+Response should contain the Bearer token for subsequent requests: `{"access_token": "MyAccessToken"}`
 
 ## Get Accounts:
-`curl -Lk -H 'Content-Type: application/json' -H 'Accept: application/json' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/Accounts?offset=0&limit=1&search=bob`
+```
+curl -Lk -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Authorization: Bearer MyAccessToken' https://mysubdomain.privilegecloud.cyberark.com/PasswordVault/API/Accounts?offset=0&limit=1&search=bob
+```
