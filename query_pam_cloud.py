@@ -11,12 +11,12 @@ URL_LOGON: str = 'https://{tenant_id}.id.cyberark.cloud/oauth2/platformtoken'
 URL_ACCOUNTS: str = f'{URL_BASE}/Accounts'
 
 
-def logon(session: Session, domain: str, tenant_id: str, username: str, password: str, auth_method) -> str:
+def logon(session: Session, tenant_id: str, client_id: str, client_secret: str) -> str:
     logon_url: str = URL_LOGON.format(tenant_id=tenant_id)
     post_data: dict = {
         'grant_type': 'client_credentials',
-        'client_id': username,
-        'client_secret': password,
+        'client_id': client_id,
+        'client_secret': client_secret,
     }
     resp_auth: Response = session.post(url=logon_url, data=post_data)
     resp_auth.raise_for_status()
@@ -24,7 +24,7 @@ def logon(session: Session, domain: str, tenant_id: str, username: str, password
     return token
 
 
-def list_accounts(session: Session, search: Optional[str] = None) -> Generator[dict, None, None]:
+def list_accounts(session: Session, subdomain: str, search: Optional[str] = None) -> Generator[dict, None, None]:
     params: dict = {
         'offset': 0,
         'limit': PAGE_SIZE,
@@ -32,7 +32,7 @@ def list_accounts(session: Session, search: Optional[str] = None) -> Generator[d
     if search:
         params['search'] = search
     while True:
-        resp_accounts: Response = session.get(url=URL_ACCOUNTS, params=params)
+        resp_accounts: Response = session.get(url=URL_ACCOUNTS.format(subdomain=subdomain), params=params)
         resp_accounts.raise_for_status()
         data: dict = resp_accounts.json()
         accounts: list = data.get('value')
@@ -45,9 +45,8 @@ def list_accounts(session: Session, search: Optional[str] = None) -> Generator[d
 def main(
         domain: str,
         tenant_id: str,
-        username: str,
-        password: str,
-        auth_method: str,
+        client_id: str,
+        client_secret: str,
         search: str,
         proxies: Optional[dict] = None,
 ) -> Generator[dict, None, None]:
@@ -64,11 +63,9 @@ def main(
     try:
         token = logon(
             session=session,
-            domain=domain,
             tenant_id=tenant_id,
-            username=username,
-            password=password,
-            auth_method=auth_method,
+            client_id=client_id,
+            client_secret=client_secret,
         )
         session.headers.update(
             {
@@ -85,7 +82,7 @@ def main(
         raise
 
     try:
-        yield from list_accounts(session=session, search=search)
+        yield from list_accounts(session=session, subdomain=domain, search=search)
     except HTTPError as http_err:
         print(f'HTTPError during accounts retrieval: {http_err}')
         raise
@@ -97,48 +94,48 @@ def main(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--subdomain',
+        name='--subdomain',
         type=str,
         required=True,
         help="The subdomain name for your instance in privilege cloud (subdomain.privilegecloud.cyberark.com)",
     )
     parser.add_argument(
-        '--tenant_id',
+        name='--tenant_id',
         type=str,
         required=True,
         help="""The tenant ID for your instance in privilege cloud.
         Usually 6 characters to be pre-pended to the cyberark URL (abc123.id.cyberark.cloud)""",
     )
     parser.add_argument(
-        '--username',
+        name='--client_id',
         default=None,
         type=str,
         required=True,
         help='The user name for your CyberArk PAM account',
     )
     parser.add_argument(
-        '--password',
+        name='--client_secret',
         default=None,
         type=str,
         required=True,
         help='The password for your CyberArk PAM account',
     )
+    # parser.add_argument(
+    #     name='--auth_method',
+    #     default='cyberark',
+    #     type=str,
+    #     required=True,
+    #     help='The authentication method for your CyberArk account',
+    #     choices=['Cyberark', 'LDAP', 'RADIUS'],
+    # )
     parser.add_argument(
-        '--auth_method',
-        default='cyberark',
-        type=str,
-        required=True,
-        help='The authentication method for your CyberArk account',
-        choices=['Cyberark', 'LDAP', 'RADIUS'],
-    )
-    parser.add_argument(
-        '--search',
+        name='--search',
         type=str,
         required=False,
         help='List of keywords to search for in accounts separated by a space (ie. "Windows admin")',
     )
     parser.add_argument(
-        '--proxies',
+        name='--proxies',
         type=str,
         required=False,
         help="JSON structure specifying 'http' and 'https' proxy URLs",
@@ -156,9 +153,9 @@ if __name__ == '__main__':
     for asset in main(
         domain=args.subdomain,
         tenant_id=args.tenant_id,
-        username=args.username,
-        password=args.password,
-        auth_method=args.auth_method,
+        client_id=args.client_id,
+        client_secret=args.client_secret,
+        # auth_method=args.auth_method,
         search=args.search,
         proxies=proxies,
     ):
