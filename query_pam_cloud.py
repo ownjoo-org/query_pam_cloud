@@ -94,34 +94,34 @@ def main(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        dest='--subdomain',
+        '--subdomain',
         type=str,
         required=True,
         help="The subdomain name for your instance in privilege cloud (subdomain.privilegecloud.cyberark.com)",
     )
     parser.add_argument(
-        dest='--tenant_id',
+        '--tenant_id',
         type=str,
         required=True,
         help="""The tenant ID for your instance in privilege cloud.
         Usually 6 characters to be pre-pended to the cyberark URL (abc123.id.cyberark.cloud)""",
     )
     parser.add_argument(
-        dest='--client_id',
+        '--client_id',
         default=None,
         type=str,
         required=True,
         help='The user name for your CyberArk PAM account',
     )
     parser.add_argument(
-        dest='--client_secret',
+        '--client_secret',
         default=None,
         type=str,
         required=True,
         help='The password for your CyberArk PAM account',
     )
     # parser.add_argument(
-    #     name='--auth_method',
+    #     '--auth_method',
     #     default='cyberark',
     #     type=str,
     #     required=True,
@@ -129,13 +129,13 @@ if __name__ == '__main__':
     #     choices=['Cyberark', 'LDAP', 'RADIUS'],
     # )
     parser.add_argument(
-        dest='--search',
+        '--search',
         type=str,
         required=False,
         help='List of keywords to search for in accounts separated by a space (ie. "Windows admin")',
     )
     parser.add_argument(
-        dest='--proxies',
+        '--proxies',
         type=str,
         required=False,
         help="JSON structure specifying 'http' and 'https' proxy URLs",
